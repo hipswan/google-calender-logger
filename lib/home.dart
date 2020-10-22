@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:http/http.dart' as http;
+
 import 'package:calender_logger/reusable_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +64,8 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     super.dispose();
+    _titleDetail.dispose();
+    _discriptionDetail.dispose();
   }
 
   // Future<void> sendCalenderEvent() async {
@@ -124,6 +128,10 @@ class _HomeState extends State<Home> {
 
   Scaffold buildAuthScreen(context) {
     return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text('Google Event Logger'),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -194,7 +202,7 @@ class _HomeState extends State<Home> {
                             fontSize: 40, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        "${startTime.toLocal()}".split(' ')[1],
+                        "${startTime.toLocal()}".split(' ')[1].substring(0, 8),
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -235,7 +243,7 @@ class _HomeState extends State<Home> {
                             fontSize: 40, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        "${endTime.toLocal()}".split(' ')[1],
+                        "${endTime.toLocal()}".split(' ')[1].substring(0, 8),
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -268,7 +276,7 @@ class _HomeState extends State<Home> {
                 onTap: () async {
                   //log('add event pressed');
                   await googleSignIn.signIn();
-                  await CalenderApi.setCalender(
+                  http.Response response = await CalenderApi.setCalender(
                     'https://www.googleapis.com/calendar/v3/calendars/primary/events?key=AIzaSyCPNSttW2_pBOr9h2LzIgTi85aWpWEqMkc',
                     user: _currentUser,
                     startDate: startTime,
@@ -276,7 +284,18 @@ class _HomeState extends State<Home> {
                     summary: _titleDetail.text,
                     discription: _discriptionDetail.text,
                   );
-                  logout();
+                  if (response.statusCode == 200) {
+                    _titleDetail.clear();
+                    _discriptionDetail.clear();
+                    setState(() {
+                      startTime = DateTime.now();
+                      endTime = DateTime.now().add(Duration(days: 1));
+                    });
+                    SnackBar snackbar =
+                        SnackBar(content: Text("Event Successfully Added"));
+                    _scaffoldKey.currentState.showSnackBar(snackbar);
+                  }
+                  await googleSignIn.signOut();
                 },
                 child: Container(
                   width: 250,

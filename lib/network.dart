@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class CalenderApi {
-  static Future<String> setCalender(
+  static Future<http.Response> setCalender(
     String url, {
     GoogleSignInAccount user,
     DateTime startDate,
@@ -47,6 +47,6 @@ class CalenderApi {
     log('Network : ${response.statusCode}');
     log('Network : ${response.body}');
 
-    return response.body;
+    return response;
   }
 }

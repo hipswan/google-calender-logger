@@ -118,6 +118,7 @@ class _HomeState extends State<Home> {
 
   logout() {
     googleSignIn.signOut();
+    _currentUser.clearAuthCache();
   }
 
   Scaffold buildAuthScreen(context) {
@@ -130,6 +131,98 @@ class _HomeState extends State<Home> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: GestureDetector(
+                      onTap: () => DatePicker.showDateTimePicker(context,
+                          showTitleActions: true,
+                          minTime: DateTime(2019, 3, 5),
+                          maxTime: DateTime(2200, 6, 7), onChanged: (date) {
+                        print('change $date');
+                      }, onConfirm: (date) {
+                        setState(() {
+                          this.startTime = date;
+                        });
+                      }, currentTime: DateTime.now(), locale: LocaleType.en),
+                      child: ReusableCard(
+                        colour: kCardColour,
+                        cardChild: Container(
+                          padding: EdgeInsets.all(10.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                "${startTime.toLocal()}".split(' ')[0],
+                                style: TextStyle(
+                                    fontSize: 27, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${startTime.toLocal()}"
+                                    .split(' ')[1]
+                                    .substring(0, 8),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              Text(
+                                "SELECT START DATE",
+                                style: kLabelTextStyle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: GestureDetector(
+                      onTap: () => DatePicker.showDateTimePicker(context,
+                          showTitleActions: true,
+                          minTime: DateTime(2019, 3, 5),
+                          maxTime: DateTime(2200, 6, 7), onChanged: (date) {
+                        print('change $date');
+                      }, onConfirm: (date) {
+                        setState(() {
+                          this.endTime = date;
+                        });
+                      }, currentTime: DateTime.now(), locale: LocaleType.en),
+                      child: ReusableCard(
+                        colour: kCardColour,
+                        cardChild: Container(
+                          padding: EdgeInsets.all(10.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                "${endTime.toLocal()}".split(' ')[0],
+                                style: TextStyle(
+                                    fontSize: 27, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${endTime.toLocal()}"
+                                    .split(' ')[1]
+                                    .substring(0, 8),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              Text(
+                                "SELECT END DATE",
+                                style: kLabelTextStyle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               ReusableCard(
                 colour: kCardColour,
                 cardChild: Container(
@@ -184,88 +277,6 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-              ReusableCard(
-                colour: kCardColour,
-                cardChild: Container(
-                  padding: EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        "${startTime.toLocal()}".split(' ')[0],
-                        style: TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "${startTime.toLocal()}".split(' ')[1].substring(0, 8),
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 20.0,
-                      ),
-                      RaisedButton(
-                        onPressed: () => DatePicker.showDateTimePicker(context,
-                            showTitleActions: true,
-                            minTime: DateTime(2019, 3, 5),
-                            maxTime: DateTime(2200, 6, 7), onChanged: (date) {
-                          print('change $date');
-                        }, onConfirm: (date) {
-                          setState(() {
-                            this.startTime = date;
-                          });
-                        }, currentTime: DateTime.now(), locale: LocaleType.en),
-                        child: Text(
-                          'Select Start Date',
-                          style: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.bold),
-                        ),
-                        color: Colors.greenAccent,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              ReusableCard(
-                colour: kCardColour,
-                cardChild: Container(
-                  padding: EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        "${endTime.toLocal()}".split(' ')[0],
-                        style: TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "${endTime.toLocal()}".split(' ')[1].substring(0, 8),
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 20.0,
-                      ),
-                      RaisedButton(
-                        onPressed: () => DatePicker.showDateTimePicker(context,
-                            showTitleActions: true,
-                            minTime: DateTime(2019, 3, 5),
-                            maxTime: DateTime(2200, 6, 7), onChanged: (date) {
-                          print('change $date');
-                        }, onConfirm: (date) {
-                          setState(() {
-                            this.endTime = date;
-                          });
-                        }, currentTime: DateTime.now(), locale: LocaleType.en),
-                        child: Text(
-                          'Select End Date',
-                          style: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.bold),
-                        ),
-                        color: Colors.greenAccent,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
               GestureDetector(
                 onTap: () async {
                   //log('add event pressed');
@@ -298,6 +309,7 @@ class _HomeState extends State<Home> {
                               '${jsonResponse['error']['errors'][0]['message']}'));
                       _scaffoldKey.currentState.showSnackBar(snackbar);
                     }
+                    await _currentUser.clearAuthCache();
                     await googleSignIn.signOut();
                   } on Exception catch (_) {
                     SnackBar snackbar =

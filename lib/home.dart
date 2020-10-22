@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:http/http.dart' as http;
@@ -43,22 +44,15 @@ class _HomeState extends State<Home> {
     super.initState();
 
     // Detects when user signed in
-    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
-      setState(() {
-        _currentUser = account;
-      });
-      handleSignIn(account);
-    }, onError: (err) {
-      print('Error signing in: $err');
-    });
-
-    // Reauthenticate user when app is opened
-    googleSignIn
-        .signInSilently(suppressErrors: false)
-        .then((account) {})
-        .catchError((err) {
-      print('Error signing in: $err');
-    });
+    // googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+    //   print('runnn');
+    //   setState(() {
+    //     _currentUser = account;
+    //   });
+    //   handleSignIn(account);
+    // }, onError: (err) {
+    //   print('Error signing in: $err');
+    // });
   }
 
   @override
@@ -118,7 +112,7 @@ class _HomeState extends State<Home> {
     if (account != null) {
       print('User logged in as $account');
       final GoogleSignInAccount user = googleSignIn.currentUser;
-      log(user.id);
+      log(account.id);
     }
   }
 
@@ -275,27 +269,41 @@ class _HomeState extends State<Home> {
               GestureDetector(
                 onTap: () async {
                   //log('add event pressed');
-                  await googleSignIn.signIn();
-                  http.Response response = await CalenderApi.setCalender(
-                    'https://www.googleapis.com/calendar/v3/calendars/primary/events?key=AIzaSyCPNSttW2_pBOr9h2LzIgTi85aWpWEqMkc',
-                    user: _currentUser,
-                    startDate: startTime,
-                    endDate: endTime,
-                    summary: _titleDetail.text,
-                    discription: _discriptionDetail.text,
-                  );
-                  if (response.statusCode == 200) {
-                    _titleDetail.clear();
-                    _discriptionDetail.clear();
-                    setState(() {
-                      startTime = DateTime.now();
-                      endTime = DateTime.now().add(Duration(days: 1));
-                    });
+                  try {
+                    GoogleSignInAccount _currentUser =
+                        await googleSignIn.signIn();
+
+                    http.Response response = await CalenderApi.setCalender(
+                      'https://www.googleapis.com/calendar/v3/calendars/primary/events?key=AIzaSyCPNSttW2_pBOr9h2LzIgTi85aWpWEqMkc',
+                      user: _currentUser,
+                      startDate: startTime,
+                      endDate: endTime,
+                      summary: _titleDetail.text,
+                      discription: _discriptionDetail.text,
+                    );
+                    var jsonResponse = jsonDecode(response.body);
+                    if (response.statusCode == 200) {
+                      SnackBar snackbar =
+                          SnackBar(content: Text("Event Successfully Added"));
+                      _scaffoldKey.currentState.showSnackBar(snackbar);
+                      _titleDetail.clear();
+                      _discriptionDetail.clear();
+                      setState(() {
+                        startTime = DateTime.now();
+                        endTime = DateTime.now().add(Duration(days: 1));
+                      });
+                    } else {
+                      SnackBar snackbar = SnackBar(
+                          content: Text(
+                              '${jsonResponse['error']['errors'][0]['message']}'));
+                      _scaffoldKey.currentState.showSnackBar(snackbar);
+                    }
+                    await googleSignIn.signOut();
+                  } on Exception catch (_) {
                     SnackBar snackbar =
-                        SnackBar(content: Text("Event Successfully Added"));
+                        SnackBar(content: Text("Error Occured"));
                     _scaffoldKey.currentState.showSnackBar(snackbar);
                   }
-                  await googleSignIn.signOut();
                 },
                 child: Container(
                   width: 250,
